@@ -1,6 +1,12 @@
 const ZKLib = require("node-zklib");
+require("dotenv").config();
 
-const zk = new ZKLib("192.168.1.9", 4370, 10000, 4000);
+const zk = new ZKLib(
+  process.env.DEVICE_IP,
+  Number(process.env.DEVICE_PORT),
+  10000,
+  4000
+);
 
 async function test() {
   try {
