@@ -12,6 +12,8 @@ export default function Members() {
   const [search, setSearch] = useState("");
   const [age,setAge] = useState("")
   const [gender,setGender] = useState("male")
+  const [amount, setAmount] = useState("");
+  const [discount, setDiscount] = useState("");
 
   const filteredMembers = members.filter((m) =>
   m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -36,7 +38,7 @@ export default function Members() {
     const res = await fetch("http://localhost:5000/api/members", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, phone, age, gender, planMonths,fingerprintId, paymentMethod }),
+      body: JSON.stringify({ name, phone, age, gender, planMonths,fingerprintId, paymentMethod, amount, discount }),
     });
 
     if (res.ok) {
@@ -73,6 +75,97 @@ export default function Members() {
 
     fetchMembers();
   };
+
+const generateInvoice = async (member: any) => {
+
+  try {
+
+    const res = await fetch(
+      "http://localhost:5000/api/invoices",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+
+          memberId: member._id,
+
+          name: member.name,
+
+          phone: member.phone,
+
+          planType: member.planType,
+
+          originalAmount: member.price,
+
+          discount: member.discount || 0,
+
+          finalAmount:
+            member.finalAmount || member.price,
+
+          paymentMethod:
+            member.paymentMethod || "cash"
+
+        }),
+
+      }
+    );
+
+    // ✅ CHECK ERROR FIRST
+    if (!res.ok) {
+
+      const errorText =
+        await res.text();
+
+      console.log(errorText);
+
+      alert("Invoice Failed ❌");
+
+      return;
+
+    }
+
+    // ✅ PDF BLOB
+    const blob =
+      await res.blob();
+
+    // ✅ CREATE URL
+    const url =
+      window.URL.createObjectURL(blob);
+
+    // ✅ DOWNLOAD LINK
+    const a =
+      document.createElement("a");
+
+    a.href = url;
+
+    a.download =
+      `${member.name}-invoice.pdf`;
+
+    document.body.appendChild(a);
+
+    // ✅ AUTO DOWNLOAD
+    a.click();
+
+    document.body.removeChild(a);
+
+    // ✅ CLEAN MEMORY
+    window.URL.revokeObjectURL(url);
+
+    alert("Invoice Downloaded ✅");
+
+  } catch (err) {
+
+    console.log(err);
+
+    alert("Server Error ❌");
+
+  }
+
+};
 
   const startEnroll = async (memberId)=>{
 
@@ -147,7 +240,7 @@ alert("Server not reachable")
 
   return (
     <div className="p-10">
-      <h1 className="text-3xl font-bold mb-6">Members</h1>
+      <h1 className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400">Members</h1>
 
       {/* Add Member Form */}
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -156,21 +249,21 @@ alert("Server not reachable")
 placeholder="Name"
 value={name}
 onChange={(e)=>setName(e.target.value)}
-className="bg-[#0f172a] border border-gray-600 p-3 rounded"
+className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400"
 />
 
 <input
 placeholder="Phone"
 value={phone}
 onChange={(e)=>setPhone(e.target.value)}
-className="bg-[#0f172a] border border-gray-600 p-3 rounded"
+className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400"
 />
 
 { <input
 placeholder="Fingerprint ID"
 value={fingerprintId}
 onChange={(e)=>setFingerprintId(e.target.value)}
-className="bg-[#0f172a] border border-gray-600 p-3 rounded"
+className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400"
 /> }
 
 {/* <button
@@ -186,14 +279,14 @@ Sync Fingerprints
 placeholder="Search member..."
 value={search}
 onChange={(e)=>setSearch(e.target.value)}
-className="bg-[#0f172a] border border-gray-600 p-3 rounded"
+className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400"
 />
 
 <input
 placeholder="Age"
 value={age}
 onChange={(e)=>setAge(e.target.value)}
-className="bg-[#0f172a] border border-gray-600 p-3 rounded"
+className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400"
 />
 
 
@@ -201,7 +294,7 @@ className="bg-[#0f172a] border border-gray-600 p-3 rounded"
 <select
 value={gender}
 onChange={(e)=>setGender(e.target.value)}
-className="bg-[#0f172a] border border-gray-600 p-3 rounded"
+className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400"
 >
 
 <option value="male">Male</option>
@@ -213,7 +306,7 @@ className="bg-[#0f172a] border border-gray-600 p-3 rounded"
 <select
 value={planMonths}
 onChange={(e)=>setPlanMonths(Number(e.target.value))}
-className="bg-[#0f172a] border border-gray-600 p-3 rounded"
+className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400"
 >
 
 <option value={1}>1 Month</option>
@@ -222,10 +315,24 @@ className="bg-[#0f172a] border border-gray-600 p-3 rounded"
 
 </select>
 
+<input
+placeholder="Amount"
+value={amount}
+onChange={(e)=>setAmount(e.target.value)}
+className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400"
+/>
+
+<input
+placeholder="Discount %"
+value={discount}
+onChange={(e)=>setDiscount(e.target.value)}
+className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400"
+/>
+
 <select
 value={paymentMethod}
 onChange={(e)=>setPaymentMethod(e.target.value)}
-className="bg-[#0f172a] border border-gray-600 p-3 rounded"
+className="bg-[#0f172a] text-white border border-gray-600 p-3 rounded placeholder:text-gray-400"
 >
 
 <option value="cash">Cash</option>
@@ -293,6 +400,8 @@ Add Member
 
               {/* Actions */}
               <td className="p-3 flex gap-2 justify-center">
+
+                
                 <button
                   onClick={() => markAttendance(m._id)}
                   className="bg-green-500 px-3 py-1 rounded text-sm"
@@ -313,6 +422,13 @@ Enroll
                 >
                   Renew
                 </button>
+
+                <button
+  onClick={() => generateInvoice(m)}
+  className="bg-indigo-600 text-sm px-3 py-1 rounded"
+>
+  Invoice
+</button>
 
                 <button
                   onClick={() => deleteMember(m._id)}

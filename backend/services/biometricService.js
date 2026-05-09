@@ -2,17 +2,25 @@ const ZKLib = require("node-zklib")
 const Member = require("../models/Member")
 const Attendance = require("../models/Attendance")
 
-const zk = new ZKLib("192.168.1.9",4370,10000,4000)
-const { sendWhatsapp } = require("./whatsapp")
 require("dotenv").config()
+
+const OWNER_PHONE = process.env.OWNER_PHONE
+
+const zk = new ZKLib(
+  process.env.DEVICE_IP,
+  Number(process.env.DEVICE_PORT),
+  10000,
+  4000
+)
+const { sendWhatsapp } = require("./whatsapp")
+
 
 let lastLogTime = null
 let enrollMemberId = null
 let knownUsers = []
 let messageCooldown = {}
 
-require("dotenv").config()
-const OWNER_PHONE = process.env.OWNER_PHONE
+
 
 async function checkNewFingerprints(){
 
@@ -110,7 +118,7 @@ messageCooldown[member._id] = now
 
 console.log("❌ Expired member tried entry:",member.name)
 
-sendWhatsapp(
+await sendWhatsapp(
 member.phone,
 `⚠ Hello ${member.name}
 
@@ -121,7 +129,7 @@ Please renew your membership.
 Gym Team 💪`
 )
 
-sendWhatsapp(
+await sendWhatsapp(
 OWNER_PHONE,
 `⚠ Expired Member Attempt
 
@@ -146,7 +154,7 @@ if(recentEntry){
 console.log("❌ Entry blocked (6 hour rule):",member.name)
 
 // Member message
-sendWhatsapp(
+await sendWhatsapp(
 member.phone,
 `❌ Entry blocked
 
@@ -154,7 +162,7 @@ You can access the gym once every 6 hours`
 )
 
 // Owner alert
-sendWhatsapp(
+await sendWhatsapp(
 OWNER_PHONE,
 `⚠ Access Attempt
 

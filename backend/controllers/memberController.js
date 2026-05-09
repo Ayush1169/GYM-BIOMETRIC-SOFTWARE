@@ -14,18 +14,18 @@ const zk = new ZKLib(
 exports.createMember = async (req, res) => {
     //  console.log("BODY DATA:", req.body);
  
-    const { name, phone, age, gender, planMonths, fingerprintId, paymentMethod } = req.body;
+    const { name, phone, age, gender, planMonths, fingerprintId, paymentMethod, amount, discount } = req.body;
      try {
-    const priceMap = {
-      1: 1000,
-      3: 2500,
-      6: 4500,
-      12: 8000,
-    };
 
-    const price = priceMap[Number(planMonths)];
+      const originalAmount = Number(amount);
 
-    if (!price) {
+const discountAmount =
+  (originalAmount * Number(discount || 0)) / 100;
+
+const finalAmount =
+  originalAmount - discountAmount;
+
+    if (!amount) {
         return res.status(400).json({
             error: "Invalid plan duration"
         })
@@ -44,12 +44,14 @@ exports.createMember = async (req, res) => {
       planType: `${planMonths} Months`,
       startDate,
       expiryDate,
-      price,
+      price: finalAmount,
+      discount: Number(discount || 0),
+      finalAmount,
     });
 
     await Payment.create({
       memberId: member._id,
-      amount: price,
+      amount: finalAmount,
       paymentMethod,
     });
 

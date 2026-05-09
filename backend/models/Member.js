@@ -17,6 +17,16 @@ const memberSchema = new mongoose.Schema({
     sparse: true, // Isse null values allow honge
   },
 
+  discount: {
+  type: Number,
+  default: 0
+},
+
+finalAmount: {
+  type: Number,
+  default: 0
+},
+
   planType: String,
   startDate: Date,
   expiryDate: Date,

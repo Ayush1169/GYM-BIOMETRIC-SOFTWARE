@@ -17,7 +17,8 @@ app.use(express.json());
 
 app.use("/api/members", require("./routes/memberRoutes"));
 app.use("/api/analytics", require("./routes/analyticsRoutes"));
- app.use("/api/biometric",require("./routes/biometricRoutes"))
+app.use("/api/biometric",require("./routes/biometricRoutes"));
+app.use("/api/invoices", require("./routes/invoiceRoutes"));
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
